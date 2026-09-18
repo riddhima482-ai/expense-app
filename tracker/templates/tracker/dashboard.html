@@ -1,0 +1,772 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — Scholar Ledger ({{ month_name }}){% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- Top Ribbon & Period Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-sepia-dark pb-5">
+    <div>
+      <div class="flex items-center space-x-2">
+        <span class="vintage-stamp stamp-ochre text-[11px]">STUDENT FISCAL RECORD</span>
+        <span class="text-xs font-mono text-sepia-dark/70">• Academic Year 2026/27</span>
+      </div>
+      <h1 class="font-serif text-3xl sm:text-4xl font-bold text-sepia-dark mt-1">
+        Monthly Ledger: {{ month_name }}
+      </h1>
+      <p class="text-xs font-mono text-sepia-dark/80 mt-0.5">
+        Strict Single-Entry Student Accounting • {{ days_remaining_text }}
+      </p>
+    </div>
+
+    <!-- Controls: Month Selector & Quick Add -->
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+      <!-- Month Form Selector -->
+      <form method="get" action="{% url 'dashboard' %}" class="flex items-center space-x-1.5">
+        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+        <label for="month-select" class="sr-only">Select Month</label>
+        <select id="month-select" name="month" onchange="this.form.submit()" class="bg-parchment-warm text-sepia-dark border-2 border-sepia-dark rounded-lg px-3 py-1.5 text-xs font-mono font-semibold shadow-retro-sm focus:outline-none focus:ring-2 focus:ring-sage-green cursor-pointer">
+          {% for opt in month_options %}
+            <option value="{{ opt.value }}" {% if opt.selected %}selected{% endif %}>
+              {{ opt.label }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+
+      <!-- Log Expense Modal Trigger -->
+      <button onclick="openModal('addExpenseModal')" class="retro-btn retro-btn-primary px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold shadow-retro-sm hover:shadow-retro flex items-center space-x-1.5">
+        <span>+</span>
+        <span>Record Voucher</span>
+      </button>
+
+      {% if not has_expenses %}
+        <!-- One-click Demo Seed Button for quick test -->
+        <a href="{% url 'seed_demo' %}" class="retro-btn retro-btn-lavender px-3 py-1.5 rounded-lg text-xs font-mono font-bold shadow-retro-sm hover:shadow-retro flex items-center space-x-1" title="Populate realistic sample expenses">
+          <span>✨</span>
+          <span>Seed Sample Ledger</span>
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Summary Stats: Vintage Ledger Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+    <!-- Card 1: Monthly Budget -->
+    <div class="retro-card rounded-xl p-5 relative overflow-hidden bg-parchment-warm">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] font-mono uppercase tracking-wider font-bold text-sepia-dark/70">
+            1. Target Budget
+          </p>
+          <h3 class="font-mono text-2xl sm:text-3xl font-bold text-sepia-dark mt-1">
+            ${{ monthly_budget|floatformat:2 }}
+          </h3>
+        </div>
+        <button onclick="openModal('adjustBudgetModal')" class="p-1.5 border border-sepia-dark/40 rounded-lg hover:bg-warm-ochre/30 transition-colors" title="Adjust Budget">
+          <svg class="w-4 h-4 text-sepia-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="mt-3 pt-2.5 border-t border-sepia-dark/20 flex items-center justify-between text-[11px] font-mono text-sepia-dark/80">
+        <span>Allocated Allowance</span>
+        <span class="text-[10px] uppercase font-bold text-sepia-dark/60">Fixed Cap</span>
+      </div>
+      <div class="absolute -right-2 -bottom-2 opacity-10 text-5xl pointer-events-none">🏛️</div>
+    </div>
+
+    <!-- Card 2: Total Spent -->
+    <div class="retro-card rounded-xl p-5 relative overflow-hidden bg-parchment-warm">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] font-mono uppercase tracking-wider font-bold text-sepia-dark/70">
+            2. Total Expenditures
+          </p>
+          <h3 class="font-mono text-2xl sm:text-3xl font-bold text-dusty-rose mt-1">
+            ${{ total_spent|floatformat:2 }}
+          </h3>
+        </div>
+        <div class="w-8 h-8 rounded-lg bg-dusty-rose/20 border border-sepia-dark/40 flex items-center justify-center text-sm">
+          💸
+        </div>
+      </div>
+      <div class="mt-3 pt-2.5 border-t border-sepia-dark/20 flex items-center justify-between text-[11px] font-mono text-sepia-dark/80">
+        <span>{{ total_count }} Voucher{{ total_count|pluralize }} logged</span>
+        <span class="font-bold">{{ budget_pct }}% of cap</span>
+      </div>
+      <div class="absolute -right-2 -bottom-2 opacity-10 text-5xl pointer-events-none">📉</div>
+    </div>
+
+    <!-- Card 3: Remaining Balance -->
+    <div class="retro-card rounded-xl p-5 relative overflow-hidden bg-parchment-warm">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] font-mono uppercase tracking-wider font-bold text-sepia-dark/70">
+            3. Net Reserve
+          </p>
+          <h3 class="font-mono text-2xl sm:text-3xl font-bold {% if is_over_budget %}text-dusty-rose{% else %}text-[#2c4d24]{% endif %} mt-1">
+            {% if is_over_budget %}-${{ remaining_balance|stringformat:".2f"|slice:"1:" }}{% else %}${{ remaining_balance|floatformat:2 }}{% endif %}
+          </h3>
+        </div>
+        <div class="w-8 h-8 rounded-lg {% if is_over_budget %}bg-dusty-rose/25 border-dusty-rose{% else %}bg-sage-green/25 border-sage-green{% endif %} border flex items-center justify-center text-sm">
+          {% if is_over_budget %}⚠️{% else %}🛡️{% endif %}
+        </div>
+      </div>
+      <div class="mt-3 pt-2.5 border-t border-sepia-dark/20 flex items-center justify-between text-[11px] font-mono text-sepia-dark/80">
+        <span>Status</span>
+        <span class="vintage-stamp {{ budget_badge_class }} text-[9px] px-1.5 py-0.5">{{ budget_status }}</span>
+      </div>
+      <div class="absolute -right-2 -bottom-2 opacity-10 text-5xl pointer-events-none">⚖️</div>
+    </div>
+
+    <!-- Card 4: Daily Safe-to-Spend Allowance -->
+    <div class="retro-card rounded-xl p-5 relative overflow-hidden bg-parchment-warm">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-[11px] font-mono uppercase tracking-wider font-bold text-sepia-dark/70">
+            4. Daily Safe Spend
+          </p>
+          <h3 class="font-mono text-2xl sm:text-3xl font-bold text-sepia-dark mt-1">
+            ${{ daily_safe_spend|floatformat:2 }}<span class="text-xs font-normal text-sepia-dark/60">/day</span>
+          </h3>
+        </div>
+        <div class="w-8 h-8 rounded-lg bg-muted-lavender/25 border border-sepia-dark/40 flex items-center justify-center text-sm">
+          ⏳
+        </div>
+      </div>
+      <div class="mt-3 pt-2.5 border-t border-sepia-dark/20 flex items-center justify-between text-[11px] font-mono text-sepia-dark/80">
+        <span>{% if is_current_month %}{{ days_remaining }} days left{% else %}Archived period{% endif %}</span>
+        <span class="text-[10px] uppercase font-bold text-sepia-dark/70">Pacing</span>
+      </div>
+      <div class="absolute -right-2 -bottom-2 opacity-10 text-5xl pointer-events-none">☕</div>
+    </div>
+
+  </div>
+
+  <!-- Pastel Budget Bar -->
+  <div class="retro-card rounded-xl p-5 bg-parchment-warm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+      <div>
+        <h2 class="font-serif font-bold text-base text-sepia-dark flex items-center space-x-2">
+          <span>Fiscal Pace Meter</span>
+          <span class="text-xs font-mono font-normal text-sepia-dark/70">({{ budget_pct }}% of ${{ monthly_budget|floatformat:2 }} threshold)</span>
+        </h2>
+      </div>
+      <div class="flex items-center space-x-2">
+        {% if is_over_budget %}
+          <span class="vintage-stamp stamp-rose text-[10px]">DEFICIT: ${{ total_spent|floatformat:2 }} SPENT</span>
+        {% elif budget_pct > 85 %}
+          <span class="vintage-stamp stamp-rose text-[10px]">CRITICAL THRESHOLD</span>
+        {% elif budget_pct >= 60 %}
+          <span class="vintage-stamp stamp-ochre text-[10px]">CAUTIONARY SPENDING</span>
+        {% else %}
+          <span class="vintage-stamp stamp-sage text-[10px]">SAFE PRUDENT PACE</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Progress Meter Container -->
+    <div class="w-full h-5 bg-parchment-inset border-2 border-sepia-dark rounded-lg overflow-hidden p-0.5 shadow-inner relative">
+      <!-- Target Marker Line at 100% -->
+      <div class="absolute top-0 bottom-0 right-0 w-0.5 bg-sepia-dark/60 z-10"></div>
+      
+      <!-- Dynamic Pastel Bar -->
+      <div class="h-full rounded transition-all duration-700 ease-out"
+           style="width: {{ capped_budget_pct }}%; background-color: {{ budget_theme_color }};">
+      </div>
+    </div>
+
+    <!-- Meter Milestone Labels -->
+    <div class="mt-2.5 flex justify-between text-[10px] font-mono text-sepia-dark/70">
+      <span class="flex items-center space-x-1">
+        <span class="w-2 h-2 rounded-full bg-sage-green inline-block"></span>
+        <span>0% (Prudent)</span>
+      </span>
+      <span class="flex items-center space-x-1">
+        <span class="w-2 h-2 rounded-full bg-warm-ochre inline-block"></span>
+        <span>60% (Watchful)</span>
+      </span>
+      <span class="flex items-center space-x-1">
+        <span class="w-2 h-2 rounded-full bg-dusty-rose inline-block"></span>
+        <span>85% (Critical)</span>
+      </span>
+      <span class="flex items-center space-x-1 font-bold">
+        <span class="w-2 h-2 rounded-full bg-sepia-dark inline-block"></span>
+        <span>100% (Cap)</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Charts & Visual Analytics Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Chart 1: Category Breakdown Doughnut -->
+    <div class="lg:col-span-5 retro-card rounded-xl p-5 bg-parchment-warm flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-sepia-dark/20 pb-3 mb-4">
+          <h2 class="font-serif font-bold text-lg text-sepia-dark flex items-center space-x-2">
+            <span>Category Spending</span>
+          </h2>
+          <span class="text-[11px] font-mono uppercase text-sepia-dark/60">Distribution</span>
+        </div>
+
+        {% if has_expenses %}
+          <div class="relative w-full aspect-square max-h-72 mx-auto flex items-center justify-center p-2">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        {% else %}
+          <div class="py-12 text-center space-y-3">
+            <div class="text-4xl">🏷️</div>
+            <p class="font-serif text-sepia-dark font-bold">No Expenses Recorded</p>
+            <p class="text-xs font-mono text-sepia-dark/70 max-w-xs mx-auto">
+              Record your first receipt or voucher to populate this category distribution diagram.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-sepia-dark/20 text-[11px] font-mono text-sepia-dark/70 flex justify-between">
+        <span>Palette: Soft Vintage Pastels</span>
+        <span>{{ month_name }}</span>
+      </div>
+    </div>
+
+    <!-- Chart 2: Monthly Spending Trend Line -->
+    <div class="lg:col-span-7 retro-card rounded-xl p-5 bg-parchment-warm flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between border-b border-sepia-dark/20 pb-3 mb-4">
+          <div>
+            <h2 class="font-serif font-bold text-lg text-sepia-dark flex items-center space-x-2">
+              <span>Cumulative Expenditure Pace</span>
+            </h2>
+            <p class="text-xs font-mono text-sepia-dark/70">Running total across day 1 to {{ days_in_month }}</p>
+          </div>
+          <span class="vintage-stamp stamp-sage text-[9px]">DAILY PACE</span>
+        </div>
+
+        {% if has_expenses %}
+          <div class="relative w-full aspect-auto h-64 sm:h-72">
+            <canvas id="trendChart"></canvas>
+          </div>
+        {% else %}
+          <div class="py-12 text-center space-y-3">
+            <div class="text-4xl">📈</div>
+            <p class="font-serif text-sepia-dark font-bold">Waiting for Ledger Entries</p>
+            <p class="text-xs font-mono text-sepia-dark/70 max-w-xs mx-auto">
+              Once transactions are archived, this chart illustrates cumulative expenditure throughout the days of the month.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-sepia-dark/20 text-[11px] font-mono text-sepia-dark/70 flex justify-between">
+        <span>Timeline: {{ month_name }}</span>
+        <span>Baseline Target: ${{ monthly_budget|floatformat:2 }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Filterable Ledger History Table Section -->
+  <div class="retro-card rounded-2xl overflow-hidden bg-parchment-warm border-2 border-sepia-dark shadow-retro-md">
+    
+    <!-- Ledger Header & Filter Controls -->
+    <div class="border-b-2 border-sepia-dark bg-parchment-inset p-4 sm:p-5">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">📖</span>
+            <h2 class="font-serif text-2xl font-bold text-sepia-dark">
+              General Accounting Ledger
+            </h2>
+          </div>
+          <p class="text-xs font-mono text-sepia-dark/70 mt-0.5">
+            Showing {{ expenses.count }} transaction record{{ expenses.count|pluralize }} • Running Total: ${{ filtered_total|floatformat:2 }}
+          </p>
+        </div>
+
+        <!-- Filter Form -->
+        <form method="get" action="{% url 'dashboard' %}" class="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="month" value="{{ selected_month_str }}">
+
+          <!-- Category Filter -->
+          <div class="relative">
+            <select name="category" onchange="this.form.submit()" class="bg-parchment text-sepia-dark border border-sepia-dark rounded-lg px-2.5 py-1.5 text-xs font-mono font-medium shadow-retro-sm focus:outline-none focus:ring-1 focus:ring-sage-green cursor-pointer">
+              <option value="">All Categories</option>
+              {% for val, name in all_categories %}
+                <option value="{{ val }}" {% if selected_category == val %}selected{% endif %}>
+                  {{ name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Search Filter -->
+          <div class="relative flex items-center">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Filter notes/payee..." class="bg-parchment text-sepia-dark border border-sepia-dark rounded-lg pl-2.5 pr-8 py-1.5 text-xs font-mono shadow-retro-sm focus:outline-none focus:ring-1 focus:ring-sage-green w-36 sm:w-44">
+            {% if search_query or selected_category %}
+              <a href="{% url 'dashboard' %}?month={{ selected_month_str }}" class="absolute right-2 text-xs font-mono text-sepia-dark/60 hover:text-sepia-dark" title="Clear Filters">✕</a>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="retro-btn px-2.5 py-1.5 rounded-lg text-xs font-mono shadow-retro-sm">
+            Filter
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Accounting Ledger Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b-2 border-sepia-dark bg-parchment-warm text-[11px] font-mono uppercase tracking-wider text-sepia-dark/80">
+            <th class="py-3 px-4 font-bold border-r border-sepia-dark/30">Entry Date</th>
+            <th class="py-3 px-4 font-bold border-r border-sepia-dark/30">Category</th>
+            <th class="py-3 px-4 font-bold border-r border-sepia-dark/30">Voucher / Payee Memo</th>
+            <th class="py-3 px-4 font-bold text-right border-r border-sepia-dark/30">Debit (Amount)</th>
+            <th class="py-3 px-4 font-bold text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-sepia-dark/20 text-xs font-mono">
+          {% for exp in expenses %}
+            <tr class="hover:bg-parchment-inset/60 transition-colors {% cycle 'bg-parchment' 'bg-parchment-warm' %}">
+              <!-- Date Column -->
+              <td class="py-3 px-4 whitespace-nowrap font-bold text-sepia-dark border-r border-sepia-dark/20">
+                {{ exp.date|date:"Y-m-d" }}
+              </td>
+
+              <!-- Category Badge Column -->
+              <td class="py-3 px-4 whitespace-nowrap border-r border-sepia-dark/20">
+                <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md border text-[11px] font-medium {{ exp.metadata.badge_bg }} {{ exp.metadata.badge_border }} {{ exp.metadata.badge_text }}">
+                  <span>{{ exp.metadata.icon }}</span>
+                  <span>{{ exp.get_category_display }}</span>
+                </span>
+              </td>
+
+              <!-- Notes / Memo Column -->
+              <td class="py-3 px-4 text-sepia-dark border-r border-sepia-dark/20 font-sans">
+                {% if exp.notes %}
+                  <span class="font-medium">{{ exp.notes }}</span>
+                {% else %}
+                  <span class="italic text-sepia-dark/40">General Student Outlay</span>
+                {% endif %}
+              </td>
+
+              <!-- Amount Column (Typewriter styling) -->
+              <td class="py-3 px-4 text-right whitespace-nowrap font-bold text-sm text-sepia-dark border-r border-sepia-dark/20">
+                ${{ exp.amount|floatformat:2 }}
+              </td>
+
+              <!-- Actions Column -->
+              <td class="py-3 px-4 whitespace-nowrap text-center">
+                <div class="inline-flex items-center space-x-2">
+                  <!-- Edit Button -->
+                  <a href="{% url 'edit_expense' exp.id %}" class="p-1.5 rounded border border-sepia-dark/30 bg-parchment hover:bg-warm-ochre/25 text-sepia-dark transition-colors shadow-retro-sm" title="Edit Voucher">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </a>
+
+                  <!-- Delete Form Button -->
+                  <form action="{% url 'delete_expense' exp.id %}" method="post" class="inline" onsubmit="return confirm('Are you sure you wish to void and expunge Voucher #{{ exp.id }} (${{ exp.amount }}) from the ledger?');">
+                    {% csrf_token %}
+                    <button type="submit" class="p-1.5 rounded border border-sepia-dark/30 bg-parchment hover:bg-dusty-rose/30 text-sepia-dark transition-colors shadow-retro-sm" title="Void Voucher">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="py-12 text-center bg-parchment">
+                <div class="max-w-md mx-auto space-y-3">
+                  <div class="text-4xl">📜</div>
+                  <p class="font-serif text-lg font-bold text-sepia-dark">No Ledger Records Found</p>
+                  <p class="text-xs font-mono text-sepia-dark/70">
+                    {% if selected_category or search_query %}
+                      No vouchers match your filter criteria. <a href="{% url 'dashboard' %}?month={{ selected_month_str }}" class="underline font-bold">Reset filters</a>.
+                    {% else %}
+                      This accounting sheet is pristine. Begin logging campus receipts or seed demo entries to inspect calculations.
+                    {% endif %}
+                  </p>
+                  <div class="pt-2">
+                    <button onclick="openModal('addExpenseModal')" class="retro-btn retro-btn-primary px-4 py-2 rounded-lg text-xs font-mono font-bold shadow-retro-sm">
+                      + Record First Voucher
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+
+        <!-- Accounting Total Footer Line -->
+        {% if expenses %}
+          <tfoot>
+            <tr class="bg-parchment-inset font-mono text-xs border-t-2 border-sepia-dark font-bold">
+              <td colspan="3" class="py-3 px-4 text-right uppercase tracking-wider text-sepia-dark border-r border-sepia-dark/20">
+                Ledger Subtotal ({{ expenses.count }} entries):
+              </td>
+              <td class="py-3 px-4 text-right font-bold text-base text-sepia-dark double-underline border-r border-sepia-dark/20">
+                ${{ filtered_total|floatformat:2 }}
+              </td>
+              <td class="py-3 px-4 text-center text-[10px] text-sepia-dark/70">
+                Verified
+              </td>
+            </tr>
+          </tfoot>
+        {% endif %}
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ======================================================== -->
+<!-- MODALS: Log Expense & Adjust Budget                      -->
+<!-- ======================================================== -->
+
+<!-- Modal 1: Log Expense Voucher Modal -->
+<div id="addExpenseModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sepia-dark/60 backdrop-blur-xs hidden">
+  <div class="retro-card rounded-2xl w-full max-w-lg bg-parchment-warm overflow-hidden shadow-retro-lg border-2 border-sepia-dark animate-fade-in relative">
+    
+    <!-- Modal Header -->
+    <div class="border-b-2 border-sepia-dark bg-parchment-inset p-4 sm:p-5 flex items-center justify-between">
+      <div>
+        <span class="text-[10px] font-mono tracking-widest uppercase font-bold text-sepia-dark/70 block">
+          Treasury Voucher Entry Form
+        </span>
+        <h3 class="font-serif text-2xl font-bold text-sepia-dark">
+          Record Expense Voucher
+        </h3>
+      </div>
+      <button onclick="closeModal('addExpenseModal')" class="p-1 rounded-lg border border-sepia-dark text-sepia-dark hover:bg-parchment font-mono text-sm font-bold shadow-retro-sm">
+        ✕
+      </button>
+    </div>
+
+    <!-- Modal Form -->
+    <form method="post" action="{% url 'add_expense' %}" class="p-6 space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="month" value="{{ selected_month_str }}">
+
+      <!-- Amount -->
+      <div class="space-y-1">
+        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
+          Amount ($ USD) *
+        </label>
+        {{ expense_form.amount }}
+      </div>
+
+      <!-- Category -->
+      <div class="space-y-1">
+        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
+          Student Category *
+        </label>
+        {{ expense_form.category }}
+      </div>
+
+      <!-- Date -->
+      <div class="space-y-1">
+        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
+          Voucher Date *
+        </label>
+        {{ expense_form.date }}
+      </div>
+
+      <!-- Notes / Payee -->
+      <div class="space-y-1">
+        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
+          Payee / Item Memo
+        </label>
+        {{ expense_form.notes }}
+      </div>
+
+      <!-- Submit / Cancel -->
+      <div class="pt-3 border-t border-sepia-dark/20 flex items-center justify-end space-x-3">
+        <button type="button" onclick="closeModal('addExpenseModal')" class="retro-btn px-4 py-2 rounded-lg text-xs font-mono font-semibold shadow-retro-sm">
+          Cancel
+        </button>
+        <button type="submit" class="retro-btn retro-btn-primary px-5 py-2 rounded-lg text-xs font-mono font-bold shadow-retro-sm">
+          Record into Ledger ✍️
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- Modal 2: Adjust Monthly Budget Modal -->
+<div id="adjustBudgetModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sepia-dark/60 backdrop-blur-xs hidden">
+  <div class="retro-card rounded-2xl w-full max-w-md bg-parchment-warm overflow-hidden shadow-retro-lg border-2 border-sepia-dark animate-fade-in relative">
+    
+    <!-- Modal Header -->
+    <div class="border-b-2 border-sepia-dark bg-parchment-inset p-4 sm:p-5 flex items-center justify-between">
+      <div>
+        <span class="text-[10px] font-mono tracking-widest uppercase font-bold text-sepia-dark/70 block">
+          Scholar Treasury Allocation
+        </span>
+        <h3 class="font-serif text-2xl font-bold text-sepia-dark">
+          Adjust Monthly Budget
+        </h3>
+      </div>
+      <button onclick="closeModal('adjustBudgetModal')" class="p-1 rounded-lg border border-sepia-dark text-sepia-dark hover:bg-parchment font-mono text-sm font-bold shadow-retro-sm">
+        ✕
+      </button>
+    </div>
+
+    <!-- Modal Form -->
+    <form method="post" action="{% url 'update_budget' %}" class="p-6 space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="month" value="{{ selected_month_str }}">
+
+      <p class="text-xs font-mono text-sepia-dark/80">
+        Update your target budget ceiling. All future daily safe-to-spend allowances and meter thresholds will re-calibrate immediately.
+      </p>
+
+      <div class="space-y-1">
+        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
+          Monthly Target Budget ($ USD)
+        </label>
+        {{ budget_form.monthly_budget }}
+      </div>
+
+      <!-- Submit / Cancel -->
+      <div class="pt-3 border-t border-sepia-dark/20 flex items-center justify-end space-x-3">
+        <button type="button" onclick="closeModal('adjustBudgetModal')" class="retro-btn px-4 py-2 rounded-lg text-xs font-mono font-semibold shadow-retro-sm">
+          Cancel
+        </button>
+        <button type="submit" class="retro-btn retro-btn-ochre px-5 py-2 rounded-lg text-xs font-mono font-bold shadow-retro-sm">
+          Update Cap 💾
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Modal Utilities
+  function openModal(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('hidden');
+    }
+  }
+
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('hidden');
+    }
+  }
+
+  // Close modal when clicking on backdrop
+  window.addEventListener('click', function(e) {
+    ['addExpenseModal', 'adjustBudgetModal'].forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal && e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+  });
+
+  // ==========================================
+  // Chart.js Configuration with Pastel Theme
+  // ==========================================
+  document.addEventListener('DOMContentLoaded', function() {
+    {% if has_expenses %}
+      // 1. Category Breakdown Doughnut Chart
+      const catCtx = document.getElementById('categoryChart');
+      if (catCtx) {
+        const catLabels = {{ chart_category_labels_json|safe }};
+        const catData = {{ chart_category_data_json|safe }};
+        const catColors = {{ chart_category_colors_json|safe }};
+        const catBorders = {{ chart_category_borders_json|safe }};
+
+        new Chart(catCtx, {
+          type: 'doughnut',
+          data: {
+            labels: catLabels,
+            datasets: [{
+              data: catData,
+              backgroundColor: catColors,
+              borderColor: '#3E2723',
+              borderWidth: 2,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#2C2C2C',
+                  font: {
+                    family: "'Courier Prime', monospace",
+                    size: 11
+                  },
+                  padding: 12,
+                  usePointStyle: true,
+                  pointStyle: 'rectRounded'
+                }
+              },
+              tooltip: {
+                backgroundColor: '#F7F4EA',
+                titleColor: '#3E2723',
+                bodyColor: '#3E2723',
+                borderColor: '#3E2723',
+                borderWidth: 2,
+                titleFont: { family: "'Lora', serif", size: 13, weight: 'bold' },
+                bodyFont: { family: "'Courier Prime', monospace", size: 12 },
+                padding: 10,
+                callbacks: {
+                  label: function(context) {
+                    const value = context.parsed || 0;
+                    return ` Spent: $${value.toFixed(2)}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 2. Spending Trend Line Chart
+      const trendCtx = document.getElementById('trendChart');
+      if (trendCtx) {
+        const trendLabels = {{ chart_trend_labels_json|safe }};
+        const cumulativeData = {{ chart_trend_cumulative_data_json|safe }};
+        const budgetTarget = {{ monthly_budget|floatformat:2 }};
+
+        // Create target baseline array for visual pacing reference
+        const targetLine = trendLabels.map((_, i) => {
+          return ((budgetTarget / trendLabels.length) * (i + 1)).toFixed(2);
+        });
+
+        new Chart(trendCtx, {
+          type: 'line',
+          data: {
+            labels: trendLabels,
+            datasets: [
+              {
+                label: 'Cumulative Expenditure ($)',
+                data: cumulativeData,
+                borderColor: '#3E2723',
+                backgroundColor: 'rgba(163, 184, 153, 0.35)', // Sage green wash
+                borderWidth: 2.5,
+                pointBackgroundColor: '#E0A96D', // Ochre points
+                pointBorderColor: '#3E2723',
+                pointBorderWidth: 1.5,
+                pointRadius: 3.5,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.25
+              },
+              {
+                label: 'Prorated Target Ceiling ($)',
+                data: targetLine,
+                borderColor: '#D98880', // Dusty rose guideline
+                borderDash: [5, 5],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false,
+                tension: 0
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              intersect: false,
+              mode: 'index',
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Day of Month',
+                  color: '#3E2723',
+                  font: { family: "'Courier Prime', monospace", size: 10 }
+                },
+                grid: {
+                  color: 'rgba(62, 39, 35, 0.08)'
+                },
+                ticks: {
+                  color: '#2C2C2C',
+                  font: { family: "'Courier Prime', monospace", size: 10 }
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Total Spent ($)',
+                  color: '#3E2723',
+                  font: { family: "'Courier Prime', monospace", size: 10 }
+                },
+                grid: {
+                  color: 'rgba(62, 39, 35, 0.08)'
+                },
+                ticks: {
+                  color: '#2C2C2C',
+                  font: { family: "'Courier Prime', monospace", size: 10 },
+                  callback: function(val) {
+                    return '$' + val;
+                  }
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  color: '#2C2C2C',
+                  font: {
+                    family: "'Courier Prime', monospace",
+                    size: 11
+                  },
+                  usePointStyle: true
+                }
+              },
+              tooltip: {
+                backgroundColor: '#F7F4EA',
+                titleColor: '#3E2723',
+                bodyColor: '#3E2723',
+                borderColor: '#3E2723',
+                borderWidth: 2,
+                titleFont: { family: "'Lora', serif", size: 13, weight: 'bold' },
+                bodyFont: { family: "'Courier Prime', monospace", size: 12 },
+                padding: 10,
+                callbacks: {
+                  title: function(items) {
+                    return `Day ${items[0].label} of Month`;
+                  },
+                  label: function(context) {
+                    return ` ${context.dataset.label}: $${parseFloat(context.parsed.y).toFixed(2)}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    {% endif %}
+  });
+</script>
+{% endblock %}

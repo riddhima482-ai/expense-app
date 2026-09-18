@@ -1,0 +1,197 @@
+/* Vintage Pastel Theme - Stylesheet & Retro Ledger Utilities */
+
+:root {
+  --color-parchment: #FDFBF7;
+  --color-parchment-warm: #F7F4EA;
+  --color-parchment-inset: #EFE9DC;
+  --color-sepia-dark: #3E2723;
+  --color-charcoal: #2C2C2C;
+  --color-dusty-rose: #D98880;
+  --color-sage-green: #A3B899;
+  --color-muted-lavender: #B39DDB;
+  --color-warm-ochre: #E0A96D;
+  --color-soft-coral: #E27D60;
+  --color-vintage-teal: #82A6A2;
+  --color-soft-olive: #859B74;
+}
+
+/* Authentic Paper Grain & Soft Parchment Texture */
+body {
+  background-color: var(--color-parchment);
+  background-image: 
+    radial-gradient(#3E2723 0.65px, transparent 0.65px),
+    linear-gradient(to right, rgba(62, 39, 35, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(62, 39, 35, 0.025) 1px, transparent 1px);
+  background-size: 24px 24px, 100px 100px, 100px 100px;
+  background-position: 0 0, 0 0, 0 0;
+  color: var(--color-charcoal);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Vintage Typography Classes */
+.font-serif-vintage {
+  font-family: 'Playfair Display', 'Lora', Georgia, serif;
+}
+
+.font-ledger-heading {
+  font-family: 'Lora', Georgia, serif;
+}
+
+.font-typewriter {
+  font-family: 'Courier Prime', 'Courier New', monospace;
+}
+
+/* Neo-Brutalist & Vintage Card Drop Shadows */
+.retro-card {
+  background-color: var(--color-parchment-warm);
+  border: 2px solid var(--color-sepia-dark);
+  box-shadow: 4px 4px 0px var(--color-sepia-dark);
+  transition: all 0.15s ease-in-out;
+}
+
+.retro-card:hover {
+  box-shadow: 5px 5px 0px var(--color-sepia-dark);
+}
+
+.retro-card-interactive {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.retro-card-interactive:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px var(--color-sepia-dark);
+}
+
+.retro-shadow-sm {
+  box-shadow: 2px 2px 0px var(--color-sepia-dark);
+}
+
+.retro-shadow-md {
+  box-shadow: 4px 4px 0px var(--color-sepia-dark);
+}
+
+.retro-shadow-lg {
+  box-shadow: 6px 6px 0px var(--color-sepia-dark);
+}
+
+/* Vintage Buttons */
+.retro-btn {
+  background-color: var(--color-parchment-warm);
+  border: 2px solid var(--color-sepia-dark);
+  box-shadow: 3px 3px 0px var(--color-sepia-dark);
+  color: var(--color-sepia-dark);
+  font-weight: 600;
+  transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.retro-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--color-sepia-dark);
+}
+
+.retro-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px var(--color-sepia-dark);
+}
+
+.retro-btn-primary {
+  background-color: var(--color-sage-green);
+  color: #1a2917;
+}
+
+.retro-btn-accent {
+  background-color: var(--color-dusty-rose);
+  color: #3b1613;
+}
+
+.retro-btn-ochre {
+  background-color: var(--color-warm-ochre);
+  color: #3b2207;
+}
+
+.retro-btn-lavender {
+  background-color: var(--color-muted-lavender);
+  color: #271640;
+}
+
+/* Vintage Ruled Ledger Paper Lines */
+.ledger-ruled-paper {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 35px,
+    rgba(62, 39, 35, 0.08) 36px
+  );
+}
+
+/* Accounting Double-Underline for Totals */
+.double-underline {
+  border-bottom: 3px double var(--color-sepia-dark);
+}
+
+/* Vintage Date Stamp Style */
+.vintage-stamp {
+  display: inline-block;
+  padding: 4px 10px;
+  text-transform: uppercase;
+  font-family: 'Courier Prime', monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border: 2px dashed currentColor;
+  transform: rotate(-2deg);
+  border-radius: 4px;
+}
+
+.stamp-sage {
+  color: #2a4023;
+  background-color: rgba(163, 184, 153, 0.25);
+  border-color: #A3B899;
+}
+
+.stamp-rose {
+  color: #581d18;
+  background-color: rgba(217, 136, 128, 0.25);
+  border-color: #D98880;
+}
+
+.stamp-ochre {
+  color: #523108;
+  background-color: rgba(224, 169, 109, 0.25);
+  border-color: #E0A96D;
+}
+
+/* Vintage Library Index Card Pattern */
+.library-card-header {
+  background: repeating-linear-gradient(
+    45deg,
+    #F7F4EA,
+    #F7F4EA 10px,
+    #EFE9DC 10px,
+    #EFE9DC 20px
+  );
+}
+
+/* Custom Vintage Scrollbar */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1ECE1;
+  border-left: 1px solid #3E2723;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4B9A8;
+  border: 1px solid #3E2723;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A3B899;
+}

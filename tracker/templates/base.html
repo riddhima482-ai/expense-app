@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Scholar Ledger — Student Expense Tracker{% endblock %}</title>
+
+  <!-- Google Fonts: Playfair Display, Lora, Courier Prime, Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            parchment: '#FDFBF7',
+            'parchment-warm': '#F7F4EA',
+            'parchment-inset': '#EFE9DC',
+            'sepia-dark': '#3E2723',
+            'charcoal': '#2C2C2C',
+            'dusty-rose': '#D98880',
+            'sage-green': '#A3B899',
+            'muted-lavender': '#B39DDB',
+            'warm-ochre': '#E0A96D',
+            'soft-coral': '#E27D60',
+            'vintage-teal': '#82A6A2',
+            'soft-olive': '#859B74',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Lora', 'Georgia', 'serif'],
+            ledger: ['Lora', 'Georgia', 'serif'],
+            mono: ['"Courier Prime"', 'Courier', 'monospace'],
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'retro-sm': '2px 2px 0px #3E2723',
+            'retro': '4px 4px 0px #3E2723',
+            'retro-lg': '6px 6px 0px #3E2723',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Vintage Theme CSS -->
+  <link rel="stylesheet" href="{% static 'tracker/css/vintage_theme.css' %}">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col selection:bg-warm-ochre selection:text-sepia-dark text-charcoal">
+
+  <!-- Vintage Header / Ledger Navigation Bar -->
+  <header class="border-b-2 border-sepia-dark bg-parchment-warm/95 sticky top-0 z-40 backdrop-blur-sm shadow-[0_2px_0_rgba(62,39,35,0.08)]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Brand & Retro Stamp -->
+        <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 group">
+          <div class="w-11 h-11 rounded-lg bg-sage-green/30 border-2 border-sepia-dark flex items-center justify-center text-2xl shadow-retro-sm group-hover:bg-sage-green/50 transition-colors">
+            📜
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-serif font-bold text-xl sm:text-2xl text-sepia-dark tracking-tight">
+                Scholar Ledger
+              </span>
+              <span class="hidden md:inline-block text-[10px] font-mono uppercase px-2 py-0.5 border border-sepia-dark rounded bg-warm-ochre/25 text-sepia-dark font-bold tracking-wider">
+                Vol. 1926
+              </span>
+            </div>
+            <p class="text-xs font-mono text-sepia-dark/70 tracking-tight">Student Fiscal & Expenditure Archives</p>
+          </div>
+        </a>
+
+        <!-- Right Side Nav Actions -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          {% if user.is_authenticated %}
+            <!-- Quick Log Expense Button -->
+            <button onclick="openModal('addExpenseModal')" class="retro-btn retro-btn-primary px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center space-x-1.5 shadow-retro-sm hover:shadow-retro">
+              <span>+</span>
+              <span class="hidden sm:inline">Log Expense</span>
+              <span class="sm:hidden">Log</span>
+            </button>
+
+            <!-- Adjust Budget Button -->
+            <button onclick="openModal('adjustBudgetModal')" class="retro-btn retro-btn-ochre px-3 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center space-x-1 shadow-retro-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              <span class="hidden md:inline">Budget</span>
+            </button>
+
+            <!-- Scholar Profile Badge -->
+            <div class="hidden lg:flex items-center space-x-2 px-3 py-1.5 border border-sepia-dark/40 bg-parchment-inset rounded-lg text-xs font-mono text-sepia-dark">
+              <span class="w-2 h-2 rounded-full bg-soft-olive"></span>
+              <span class="font-bold">Scholar:</span>
+              <span>{{ user.username }}</span>
+            </div>
+
+            <!-- Logout Form / Button -->
+            <form action="{% url 'logout' %}" method="post" class="inline">
+              {% csrf_token %}
+              <button type="submit" class="retro-btn px-3 py-2 rounded-lg text-xs sm:text-sm text-sepia-dark hover:bg-dusty-rose/30 transition-colors shadow-retro-sm" title="Sign Out">
+                <span class="hidden sm:inline">Sign Out</span>
+                <span class="sm:hidden">Exit</span>
+              </button>
+            </form>
+          {% else %}
+            <a href="{% url 'login' %}" class="retro-btn px-4 py-2 rounded-lg text-sm font-medium shadow-retro-sm">
+              Log In
+            </a>
+            <a href="{% url 'register' %}" class="retro-btn retro-btn-primary px-4 py-2 rounded-lg text-sm font-semibold shadow-retro-sm">
+              Enrol
+            </a>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages (Styled as Vintage Telegram / Receipt Slips) -->
+  {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 w-full">
+      <div class="space-y-2.5">
+        {% for message in messages %}
+          <div class="border-2 border-sepia-dark rounded-lg p-3.5 flex items-center justify-between shadow-retro-sm {% if message.tags == 'error' %}bg-dusty-rose/25 text-[#4a1815]{% elif message.tags == 'success' %}bg-sage-green/25 text-[#1b3318]{% elif message.tags == 'info' %}bg-muted-lavender/25 text-[#241738]{% else %}bg-warm-ochre/25 text-[#3b2408]{% endif %} animate-fade-in">
+            <div class="flex items-center space-x-3">
+              <span class="text-xl">
+                {% if message.tags == 'error' %}⚠️{% elif message.tags == 'success' %}✒️{% else %}📋{% endif %}
+              </span>
+              <span class="font-mono text-sm tracking-tight font-medium">{{ message }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-sepia-dark hover:opacity-75 font-mono text-base px-2">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Main Content Block -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Vintage Footer -->
+  <footer class="border-t-2 border-sepia-dark bg-parchment-warm mt-auto py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono text-sepia-dark/80">
+        <div class="flex items-center space-x-2">
+          <span>🏛️</span>
+          <span>Department of Collegiate Fiscal Solvency • Founded Anno 1926</span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="vintage-stamp stamp-sage text-[10px]">Balanced Ledger</span>
+          <span>Single-Entry Accounting Standard</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

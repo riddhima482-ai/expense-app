@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In — Scholar Ledger Card{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-6 sm:my-12">
+
+  <!-- Retro Library Card Container -->
+  <div class="retro-card rounded-2xl overflow-hidden bg-parchment-warm shadow-retro-lg relative border-2 border-sepia-dark">
+    
+    <!-- Library Card Header Strip -->
+    <div class="border-b-2 border-sepia-dark bg-parchment-inset p-4 sm:p-5 relative">
+      <!-- Decorative Library Catalog Punch Hole -->
+      <div class="w-4 h-4 rounded-full border-2 border-sepia-dark bg-parchment absolute top-4 right-4 shadow-inner"></div>
+      
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-[11px] font-mono tracking-widest uppercase font-bold text-sepia-dark/70 block">
+            Form No. 104-B • University Treasury
+          </span>
+          <h1 class="font-serif text-2xl sm:text-3xl font-bold text-sepia-dark mt-0.5">
+            Borrower & Ledger Card
+          </h1>
+        </div>
+      </div>
+
+      <div class="mt-3 pt-2 border-t border-sepia-dark/20 flex items-center justify-between text-xs font-mono text-sepia-dark/80">
+        <span>SUBJECT: <strong class="underline decoration-sepia-dark/40">Student Expenditures</strong></span>
+        <span class="vintage-stamp stamp-ochre text-[10px]">AUTHORIZED</span>
+      </div>
+    </div>
+
+    <!-- Main Card Body -->
+    <div class="p-6 sm:p-8 space-y-6">
+
+      <!-- Vintage Instructions / Header Note -->
+      <div class="border-l-4 border-warm-ochre pl-3 py-1 bg-warm-ochre/10 rounded-r text-xs font-mono text-sepia-dark">
+        Please present your Scholar ID & Secret Code to inspect your current semester's ledger balances.
+      </div>
+
+      <form method="post" action="{% url 'login' %}" class="space-y-5">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="p-3 bg-dusty-rose/20 border-2 border-dusty-rose rounded-lg text-xs font-mono text-[#4a1815]">
+            {% for error in form.non_field_errors %}
+              <p>{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Username Field -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
+            Scholar Identity / Username
+          </label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <p class="text-xs font-mono text-dusty-rose mt-1">{{ form.username.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Password Field -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
+              Secret Passcode
+            </label>
+          </div>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <p class="text-xs font-mono text-dusty-rose mt-1">{{ form.password.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="w-full retro-btn retro-btn-primary py-3 rounded-xl font-mono text-sm tracking-wide font-bold shadow-retro hover:shadow-retro-lg transition-all flex items-center justify-center space-x-2">
+          <span>STAMP & LOG IN</span>
+          <span>⟶</span>
+        </button>
+      </form>
+
+      <!-- Quick Demo Account Helper -->
+      <div class="pt-4 border-t border-dashed border-sepia-dark/30">
+        <div class="bg-parchment-inset/80 p-3 rounded-lg border border-sepia-dark/30 text-xs font-mono text-sepia-dark/90">
+          <div class="font-bold flex items-center space-x-1.5 mb-1">
+            <span>💡</span>
+            <span>Fast-Track Demo Credentials:</span>
+          </div>
+          <div class="flex justify-between items-center text-[11px] text-sepia-dark/80">
+            <span>Scholar: <code class="bg-parchment px-1.5 py-0.5 rounded border border-sepia-dark/20 font-bold">student</code></span>
+            <span>Code: <code class="bg-parchment px-1.5 py-0.5 rounded border border-sepia-dark/20 font-bold">scholar123</code></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Link to Registration -->
+      <div class="text-center pt-2 text-xs font-mono text-sepia-dark/80">
+        New to the Treasury? 
+        <a href="{% url 'register' %}" class="font-bold underline decoration-2 decoration-sage-green hover:text-sepia-dark transition-colors">
+          Enrol for a Scholar Card ↗
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Retro Bottom Ruled Accent -->
+    <div class="h-2 bg-gradient-to-r from-sage-green via-warm-ochre to-dusty-rose border-t border-sepia-dark"></div>
+  </div>
+
+</div>
+{% endblock %}
