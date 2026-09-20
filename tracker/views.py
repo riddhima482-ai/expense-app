@@ -30,7 +30,7 @@ def register_view(request):
             # Create associated user profile with default student budget
             UserProfile.objects.get_or_create(
                 user=user,
-                defaults={'monthly_budget': Decimal('1200.00'), 'currency_symbol': '$'}
+                defaults={'monthly_budget': Decimal('12000.00'), 'currency_symbol': '₹'}
             )
             
             login(request, user)
@@ -72,8 +72,9 @@ def logout_view(request):
 def dashboard_view(request):
     profile, _ = UserProfile.objects.get_or_create(
         user=request.user,
-        defaults={'monthly_budget': Decimal('1200.00'), 'currency_symbol': '$'}
+        defaults={'monthly_budget': Decimal('12000.00'), 'currency_symbol': '₹'}
     )
+
 
     today = timezone.localdate()
 
@@ -285,7 +286,7 @@ def add_expense_view(request):
         expense.save()
         messages.success(
             request, 
-            f"Voucher recorded: {expense.get_category_display()} for ${expense.amount:.2f}."
+            f"Voucher recorded: {expense.get_category_display()} for ₹{expense.amount:.2f}."
         )
         # Redirect back to the expense's month so user sees it right away
         target_month = expense.date.strftime('%Y-%m')
@@ -329,7 +330,7 @@ def delete_expense_view(request, pk):
     amount = expense.amount
     category = expense.get_category_display()
     expense.delete()
-    messages.success(request, f"Voided voucher: {category} (${amount:.2f}) removed from ledger.")
+    messages.success(request, f"Voided voucher: {category} (₹{amount:.2f}) removed from ledger.")
     return redirect(f"/dashboard/?month={target_month}")
 
 
@@ -341,7 +342,7 @@ def update_budget_view(request):
     month = request.POST.get('month', '')
     if form.is_valid():
         form.save()
-        messages.success(request, f"Monthly budget limit updated to ${profile.monthly_budget:.2f}.")
+        messages.success(request, f"Monthly budget limit updated to ₹{profile.monthly_budget:.2f}.")
     else:
         messages.error(request, "Invalid budget amount. Please specify a positive figure.")
     
@@ -351,24 +352,24 @@ def update_budget_view(request):
 
 @login_required
 def seed_demo_data_view(request):
-    """Seed realistic student expenses for instant demonstration."""
+    """Seed realistic student expenses for instant demonstration (INR)."""
     today = timezone.localdate()
     curr_year = today.year
     curr_month = today.month
 
-    # Generate diverse student entries
+    # Generate diverse student entries in INR
     sample_records = [
-        (Expense.CATEGORY_HOUSING, Decimal('520.00'), min(1, today.day), "Monthly Student Dorm / Housing Share"),
-        (Expense.CATEGORY_GROCERIES, Decimal('48.60'), max(1, today.day - 7), "Weekly Groceries - Trader Joe's"),
-        (Expense.CATEGORY_SUPPLIES, Decimal('72.50'), max(1, today.day - 6), "Organic Chemistry Textbook & Notebooks"),
-        (Expense.CATEGORY_ENTERTAINMENT, Decimal('6.85'), max(1, today.day - 5), "Study Break Iced Oat Latte"),
-        (Expense.CATEGORY_TRANSPORT, Decimal('35.00'), max(1, today.day - 4), "Subsidized Campus Metro Pass"),
-        (Expense.CATEGORY_GROCERIES, Decimal('21.40'), max(1, today.day - 3), "Farmers Market Produce & Oats"),
-        (Expense.CATEGORY_SUBSCRIPTIONS, Decimal('5.99'), max(1, today.day - 3), "Student Spotify & Streaming Pack"),
-        (Expense.CATEGORY_ENTERTAINMENT, Decimal('14.20'), max(1, today.day - 2), "Campus Film Club Screening & Snacks"),
-        (Expense.CATEGORY_GROCERIES, Decimal('16.80'), max(1, today.day - 1), "Campus Dining Hall Lunch Voucher"),
-        (Expense.CATEGORY_SUPPLIES, Decimal('12.75'), today.day, "Graphite Pencils & Index Cards"),
-        (Expense.CATEGORY_OTHER, Decimal('9.50'), today.day, "Dorm Laundry Tokens"),
+        (Expense.CATEGORY_HOUSING, Decimal('5500.00'), min(1, today.day), "Monthly Student PG / Hostel Rent Share"),
+        (Expense.CATEGORY_GROCERIES, Decimal('1850.00'), max(1, today.day - 7), "Monthly Mess & Grocery Provisions"),
+        (Expense.CATEGORY_SUPPLIES, Decimal('750.00'), max(1, today.day - 6), "Engineering Textbooks & Lab Manual"),
+        (Expense.CATEGORY_ENTERTAINMENT, Decimal('180.00'), max(1, today.day - 5), "Campus Canteen Chai & Samosas"),
+        (Expense.CATEGORY_TRANSPORT, Decimal('600.00'), max(1, today.day - 4), "Monthly Subsidized Metro & Bus Pass"),
+        (Expense.CATEGORY_GROCERIES, Decimal('340.00'), max(1, today.day - 3), "Fresh Fruits & Nuts from Mandi"),
+        (Expense.CATEGORY_SUBSCRIPTIONS, Decimal('119.00'), max(1, today.day - 3), "Student Spotify & YouTube Premium Pack"),
+        (Expense.CATEGORY_ENTERTAINMENT, Decimal('350.00'), max(1, today.day - 2), "Weekend Movie & Snacks with Friends"),
+        (Expense.CATEGORY_GROCERIES, Decimal('120.00'), max(1, today.day - 1), "Campus Dining Hall Meal Coupons"),
+        (Expense.CATEGORY_SUPPLIES, Decimal('80.00'), today.day, "Graphite Pencils & Spiral Notebooks"),
+        (Expense.CATEGORY_OTHER, Decimal('150.00'), today.day, "Hostel Laundry & Printing Tokens"),
     ]
 
     count_created = 0
@@ -388,3 +389,4 @@ def seed_demo_data_view(request):
         f"Archived {count_created} sample student expense vouchers into your ledger!"
     )
     return redirect(f"/dashboard/?month={curr_year:04d}-{curr_month:02d}")
+

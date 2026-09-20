@@ -63,7 +63,7 @@
             1. Target Budget
           </p>
           <h3 class="font-mono text-2xl sm:text-3xl font-bold text-sepia-dark mt-1">
-            ${{ monthly_budget|floatformat:2 }}
+            ₹{{ monthly_budget|floatformat:2 }}
           </h3>
         </div>
         <button onclick="openModal('adjustBudgetModal')" class="p-1.5 border border-sepia-dark/40 rounded-lg hover:bg-warm-ochre/30 transition-colors" title="Adjust Budget">
@@ -87,7 +87,7 @@
             2. Total Expenditures
           </p>
           <h3 class="font-mono text-2xl sm:text-3xl font-bold text-dusty-rose mt-1">
-            ${{ total_spent|floatformat:2 }}
+            ₹{{ total_spent|floatformat:2 }}
           </h3>
         </div>
         <div class="w-8 h-8 rounded-lg bg-dusty-rose/20 border border-sepia-dark/40 flex items-center justify-center text-sm">
@@ -109,7 +109,7 @@
             3. Net Reserve
           </p>
           <h3 class="font-mono text-2xl sm:text-3xl font-bold {% if is_over_budget %}text-dusty-rose{% else %}text-[#2c4d24]{% endif %} mt-1">
-            {% if is_over_budget %}-${{ remaining_balance|stringformat:".2f"|slice:"1:" }}{% else %}${{ remaining_balance|floatformat:2 }}{% endif %}
+            {% if is_over_budget %}-₹{{ remaining_balance|stringformat:".2f"|slice:"1:" }}{% else %}₹{{ remaining_balance|floatformat:2 }}{% endif %}
           </h3>
         </div>
         <div class="w-8 h-8 rounded-lg {% if is_over_budget %}bg-dusty-rose/25 border-dusty-rose{% else %}bg-sage-green/25 border-sage-green{% endif %} border flex items-center justify-center text-sm">
@@ -131,7 +131,7 @@
             4. Daily Safe Spend
           </p>
           <h3 class="font-mono text-2xl sm:text-3xl font-bold text-sepia-dark mt-1">
-            ${{ daily_safe_spend|floatformat:2 }}<span class="text-xs font-normal text-sepia-dark/60">/day</span>
+            ₹{{ daily_safe_spend|floatformat:2 }}<span class="text-xs font-normal text-sepia-dark/60">/day</span>
           </h3>
         </div>
         <div class="w-8 h-8 rounded-lg bg-muted-lavender/25 border border-sepia-dark/40 flex items-center justify-center text-sm">
@@ -153,12 +153,12 @@
       <div>
         <h2 class="font-serif font-bold text-base text-sepia-dark flex items-center space-x-2">
           <span>Fiscal Pace Meter</span>
-          <span class="text-xs font-mono font-normal text-sepia-dark/70">({{ budget_pct }}% of ${{ monthly_budget|floatformat:2 }} threshold)</span>
+          <span class="text-xs font-mono font-normal text-sepia-dark/70">({{ budget_pct }}% of ₹{{ monthly_budget|floatformat:2 }} threshold)</span>
         </h2>
       </div>
       <div class="flex items-center space-x-2">
         {% if is_over_budget %}
-          <span class="vintage-stamp stamp-rose text-[10px]">DEFICIT: ${{ total_spent|floatformat:2 }} SPENT</span>
+          <span class="vintage-stamp stamp-rose text-[10px]">DEFICIT: ₹{{ total_spent|floatformat:2 }} SPENT</span>
         {% elif budget_pct > 85 %}
           <span class="vintage-stamp stamp-rose text-[10px]">CRITICAL THRESHOLD</span>
         {% elif budget_pct >= 60 %}
@@ -168,6 +168,7 @@
         {% endif %}
       </div>
     </div>
+
 
     <!-- Progress Meter Container -->
     <div class="w-full h-5 bg-parchment-inset border-2 border-sepia-dark rounded-lg overflow-hidden p-0.5 shadow-inner relative">
@@ -265,7 +266,7 @@
 
       <div class="mt-4 pt-3 border-t border-sepia-dark/20 text-[11px] font-mono text-sepia-dark/70 flex justify-between">
         <span>Timeline: {{ month_name }}</span>
-        <span>Baseline Target: ${{ monthly_budget|floatformat:2 }}</span>
+        <span>Baseline Target: ₹{{ monthly_budget|floatformat:2 }}</span>
       </div>
     </div>
 
@@ -285,7 +286,7 @@
             </h2>
           </div>
           <p class="text-xs font-mono text-sepia-dark/70 mt-0.5">
-            Showing {{ expenses.count }} transaction record{{ expenses.count|pluralize }} • Running Total: ${{ filtered_total|floatformat:2 }}
+            Showing {{ expenses.count }} transaction record{{ expenses.count|pluralize }} • Running Total: ₹{{ filtered_total|floatformat:2 }}
           </p>
         </div>
 
@@ -359,7 +360,7 @@
 
               <!-- Amount Column (Typewriter styling) -->
               <td class="py-3 px-4 text-right whitespace-nowrap font-bold text-sm text-sepia-dark border-r border-sepia-dark/20">
-                ${{ exp.amount|floatformat:2 }}
+                ₹{{ exp.amount|floatformat:2 }}
               </td>
 
               <!-- Actions Column -->
@@ -373,7 +374,7 @@
                   </a>
 
                   <!-- Delete Form Button -->
-                  <form action="{% url 'delete_expense' exp.id %}" method="post" class="inline" onsubmit="return confirm('Are you sure you wish to void and expunge Voucher #{{ exp.id }} (${{ exp.amount }}) from the ledger?');">
+                  <form action="{% url 'delete_expense' exp.id %}" method="post" class="inline" onsubmit="return confirm('Are you sure you wish to void and expunge Voucher #{{ exp.id }} (₹{{ exp.amount }}) from the ledger?');">
                     {% csrf_token %}
                     <button type="submit" class="p-1.5 rounded border border-sepia-dark/30 bg-parchment hover:bg-dusty-rose/30 text-sepia-dark transition-colors shadow-retro-sm" title="Void Voucher">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -416,7 +417,7 @@
                 Ledger Subtotal ({{ expenses.count }} entries):
               </td>
               <td class="py-3 px-4 text-right font-bold text-base text-sepia-dark double-underline border-r border-sepia-dark/20">
-                ${{ filtered_total|floatformat:2 }}
+                ₹{{ filtered_total|floatformat:2 }}
               </td>
               <td class="py-3 px-4 text-center text-[10px] text-sepia-dark/70">
                 Verified
@@ -462,10 +463,11 @@
       <!-- Amount -->
       <div class="space-y-1">
         <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
-          Amount ($ USD) *
+          Amount (₹ INR) *
         </label>
         {{ expense_form.amount }}
       </div>
+
 
       <!-- Category -->
       <div class="space-y-1">
@@ -535,10 +537,11 @@
 
       <div class="space-y-1">
         <label class="block text-xs font-mono font-bold uppercase tracking-wider text-sepia-dark">
-          Monthly Target Budget ($ USD)
+          Monthly Target Budget (₹ INR)
         </label>
         {{ budget_form.monthly_budget }}
       </div>
+
 
       <!-- Submit / Cancel -->
       <div class="pt-3 border-t border-sepia-dark/20 flex items-center justify-end space-x-3">
@@ -638,7 +641,7 @@
                 callbacks: {
                   label: function(context) {
                     const value = context.parsed || 0;
-                    return ` Spent: $${value.toFixed(2)}`;
+                    return ` Spent: ₹${value.toFixed(2)}`;
                   }
                 }
               }
@@ -665,7 +668,7 @@
             labels: trendLabels,
             datasets: [
               {
-                label: 'Cumulative Expenditure ($)',
+                label: 'Cumulative Expenditure (₹)',
                 data: cumulativeData,
                 borderColor: '#3E2723',
                 backgroundColor: 'rgba(163, 184, 153, 0.35)', // Sage green wash
@@ -679,7 +682,7 @@
                 tension: 0.25
               },
               {
-                label: 'Prorated Target Ceiling ($)',
+                label: 'Prorated Target Ceiling (₹)',
                 data: targetLine,
                 borderColor: '#D98880', // Dusty rose guideline
                 borderDash: [5, 5],
@@ -716,7 +719,7 @@
               y: {
                 title: {
                   display: true,
-                  text: 'Total Spent ($)',
+                  text: 'Total Spent (₹)',
                   color: '#3E2723',
                   font: { family: "'Courier Prime', monospace", size: 10 }
                 },
@@ -727,7 +730,7 @@
                   color: '#2C2C2C',
                   font: { family: "'Courier Prime', monospace", size: 10 },
                   callback: function(val) {
-                    return '$' + val;
+                    return '₹' + val;
                   }
                 }
               }
@@ -758,7 +761,7 @@
                     return `Day ${items[0].label} of Month`;
                   },
                   label: function(context) {
-                    return ` ${context.dataset.label}: $${parseFloat(context.parsed.y).toFixed(2)}`;
+                    return ` ${context.dataset.label}: ₹${parseFloat(context.parsed.y).toFixed(2)}`;
                   }
                 }
               }
@@ -766,6 +769,7 @@
           }
         });
       }
+
     {% endif %}
   });
 </script>

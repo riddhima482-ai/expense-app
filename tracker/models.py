@@ -9,13 +9,14 @@ class UserProfile(models.Model):
     monthly_budget = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
-        default=Decimal('1200.00'),
+        default=Decimal('12000.00'),
         help_text="Target budget for each calendar month."
     )
-    currency_symbol = models.CharField(max_length=5, default='$')
+    currency_symbol = models.CharField(max_length=5, default='₹')
 
     def __str__(self):
-        return f"{self.user.username}'s Ledger Profile (${self.monthly_budget})"
+        return f"{self.user.username}'s Ledger Profile (₹{self.monthly_budget})"
+
 
 
 class Expense(models.Model):
@@ -114,7 +115,8 @@ class Expense(models.Model):
         ordering = ['-date', '-created_at']
 
     def __str__(self):
-        return f"{self.date} - {self.get_category_display()} - ${self.amount}"
+        return f"{self.date} - {self.get_category_display()} - ₹{self.amount}"
+
 
     @property
     def metadata(self):

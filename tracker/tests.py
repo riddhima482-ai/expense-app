@@ -48,7 +48,7 @@ class ExpenseTrackerTests(TestCase):
         self.assertEqual(exp.amount, Decimal('45.50'))
         self.assertEqual(exp.icon, '🍎')
         self.assertIn('bg', exp.metadata)
-        self.assertIn('$45.50', str(exp))
+        self.assertIn('₹45.50', str(exp))
 
     def test_protected_routes_redirect_unauthenticated(self):
         dashboard_url = reverse('dashboard')
@@ -68,7 +68,9 @@ class ExpenseTrackerTests(TestCase):
         self.assertTrue(User.objects.filter(username='new_scholar').exists())
         new_user = User.objects.get(username='new_scholar')
         self.assertTrue(hasattr(new_user, 'profile'))
-        self.assertEqual(new_user.profile.monthly_budget, Decimal('1200.00'))
+        self.assertEqual(new_user.profile.monthly_budget, Decimal('12000.00'))
+        self.assertEqual(new_user.profile.currency_symbol, '₹')
+
 
     def test_dashboard_calculations_and_daily_safe_spend(self):
         self.client.login(username='scholar_alice', password='password123')
@@ -174,8 +176,9 @@ class ExpenseTrackerTests(TestCase):
         self.client.login(username='scholar_alice', password='password123')
         update_budget_url = reverse('update_budget')
         response = self.client.post(update_budget_url, {
-            'monthly_budget': '1500.00'
+            'monthly_budget': '15000.00'
         })
         self.assertEqual(response.status_code, 302)
         self.profile1.refresh_from_db()
-        self.assertEqual(self.profile1.monthly_budget, Decimal('1500.00'))
+        self.assertEqual(self.profile1.monthly_budget, Decimal('15000.00'))
+

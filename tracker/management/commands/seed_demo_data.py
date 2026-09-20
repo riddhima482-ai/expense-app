@@ -23,27 +23,26 @@ class Command(BaseCommand):
 
         profile, _ = UserProfile.objects.get_or_create(
             user=user,
-            defaults={'monthly_budget': Decimal('1200.00'), 'currency_symbol': '$'}
+            defaults={'monthly_budget': Decimal('12000.00'), 'currency_symbol': '₹'}
         )
 
         today = timezone.localdate()
         curr_year = today.year
         curr_month = today.month
 
-        # Clear existing expenses for a clean demo if specified
         sample_records = [
-            (Expense.CATEGORY_HOUSING, Decimal('520.00'), 1, "Monthly Student Dorm / Housing Share"),
-            (Expense.CATEGORY_GROCERIES, Decimal('54.30'), max(1, today.day - 9), "Weekly Groceries - Trader Joe's"),
-            (Expense.CATEGORY_SUPPLIES, Decimal('82.50'), max(1, today.day - 8), "Organic Chemistry Textbook & Lab Manual"),
-            (Expense.CATEGORY_ENTERTAINMENT, Decimal('6.75'), max(1, today.day - 7), "Library Study Break Oat Latte"),
-            (Expense.CATEGORY_TRANSPORT, Decimal('40.00'), max(1, today.day - 6), "Subsidized Campus Metro Pass"),
-            (Expense.CATEGORY_GROCERIES, Decimal('26.40'), max(1, today.day - 5), "Farmers Market Fruit & Granola"),
-            (Expense.CATEGORY_SUBSCRIPTIONS, Decimal('5.99'), max(1, today.day - 4), "Student Spotify & Streaming Bundle"),
-            (Expense.CATEGORY_ENTERTAINMENT, Decimal('16.50'), max(1, today.day - 3), "Campus Film Guild Ticket & Popcorn"),
-            (Expense.CATEGORY_GROCERIES, Decimal('19.80'), max(1, today.day - 2), "Campus Dining Hall Meal Swipe"),
-            (Expense.CATEGORY_SUPPLIES, Decimal('15.20'), max(1, today.day - 1), "Lecture Notes Binder & Highlighters"),
-            (Expense.CATEGORY_OTHER, Decimal('10.00'), today.day, "Dorm Laundry Tokens & Quarters"),
-            (Expense.CATEGORY_ENTERTAINMENT, Decimal('4.50'), today.day, "Cold Brew Coffee at Quad Kiosk"),
+            (Expense.CATEGORY_HOUSING, Decimal('5500.00'), 1, "Monthly Student PG / Hostel Rent Share"),
+            (Expense.CATEGORY_GROCERIES, Decimal('1850.00'), max(1, today.day - 9), "Monthly Mess & Grocery Provisions"),
+            (Expense.CATEGORY_SUPPLIES, Decimal('750.00'), max(1, today.day - 8), "Engineering Textbooks & Lab Manual"),
+            (Expense.CATEGORY_ENTERTAINMENT, Decimal('180.00'), max(1, today.day - 7), "Campus Canteen Chai & Samosas"),
+            (Expense.CATEGORY_TRANSPORT, Decimal('600.00'), max(1, today.day - 6), "Monthly Subsidized Metro & Bus Pass"),
+            (Expense.CATEGORY_GROCERIES, Decimal('340.00'), max(1, today.day - 5), "Fresh Fruits & Nuts from Mandi"),
+            (Expense.CATEGORY_SUBSCRIPTIONS, Decimal('119.00'), max(1, today.day - 4), "Student Spotify & YouTube Premium Pack"),
+            (Expense.CATEGORY_ENTERTAINMENT, Decimal('350.00'), max(1, today.day - 3), "Weekend Movie & Snacks with Friends"),
+            (Expense.CATEGORY_GROCERIES, Decimal('120.00'), max(1, today.day - 2), "Campus Dining Hall Meal Coupons"),
+            (Expense.CATEGORY_SUPPLIES, Decimal('80.00'), max(1, today.day - 1), "Graphite Pencils & Spiral Notebooks"),
+            (Expense.CATEGORY_OTHER, Decimal('150.00'), today.day, "Hostel Laundry & Printing Tokens"),
+            (Expense.CATEGORY_ENTERTAINMENT, Decimal('60.00'), today.day, "Evening Cold Coffee at Campus Kiosk"),
         ]
 
         created_count = 0
@@ -58,4 +57,6 @@ class Command(BaseCommand):
             )
             created_count += 1
 
-        self.stdout.write(self.style.SUCCESS(f"Successfully seeded {created_count} retro ledger records for {username}!"))
+        self.stdout.write(self.style.SUCCESS(f"Successfully seeded {created_count} retro ledger records (INR) for {username}!"))
+
+

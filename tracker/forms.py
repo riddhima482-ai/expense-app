@@ -121,13 +121,14 @@ class BudgetUpdateForm(forms.ModelForm):
         model = UserProfile
         fields = ['monthly_budget']
         labels = {
-            'monthly_budget': 'Monthly Budget Target ($)'
+            'monthly_budget': 'Monthly Budget Target (₹)'
         }
         widgets = {
             'monthly_budget': forms.NumberInput(attrs={
                 'class': VINTAGE_INPUT_CLASSES + " font-mono text-base font-semibold",
-                'step': '10.00',
-                'min': '10.00',
-                'placeholder': '1200.00'
+                'step': '100.00',
+                'min': '100.00',
+                'placeholder': '12000.00'
             }),
         }
+
